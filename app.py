@@ -126,7 +126,7 @@ def show_data_obtaining():
     st.write("Finalmente, las paginas web de las dependencias encargadas de los registros estadísticos publicos permiten descargar una gran cantidad de datos de diferentes índoles en archivos compatibles con diferentes aplicaciones. En esta ocasión, se obtuvieron archivos .csv. Esto permite una sencilla lectura y manejo de datos con Python.")
     
     st.subheader("🔎🔎Conoce a detalle el código utilizado en este trabajo🔎🔎")
-    st.markdown("💡--> Visita el [repositorio]() en GitHub.")
+    st.markdown("💡--> Visita el [repositorio](https://github.com/gerardoJI/P1_Commodities_price) en GitHub.")
     
 
 def show_data_cleaning():
@@ -221,7 +221,7 @@ def show_data_cleaning():
     st.code(codigo5, language='python')
     st.header("")
     st.subheader("🔎🔎Conoce a detalle el código utilizado en este trabajo🔎🔎")
-    st.markdown("💡--> Visita el [repositorio]() en GitHub.")
+    st.markdown("💡--> Visita el [repositorio](https://github.com/gerardoJI/P1_Commodities_price) en GitHub.")
     
     st.header("")
     st.header("Dataframe final")
@@ -252,7 +252,7 @@ def show_graphics():
     st.write("Ahora, respecto al aumento de precios entre los años 2002 y 2004 en México y España, la pendiente del INPC de México es mayor que la del IPC de España, lo que indica un mayor crecimiento general de los precios al consumidor en el país latinoamericano. En ambos casos las pendientes son positivas, probablemente reflejo de la inflación. Llama la atención el similar comportamiento del aumento del precio en alimentos y bebidas para ambos países, a partir del 2020.")
 
     st.subheader("🔎🔎Conoce a detalle el código utilizado en este trabajo🔎🔎")
-    st.markdown("💡--> Visita el [repositorio]() en GitHub.")
+    st.markdown("💡--> Visita el [repositorio](https://github.com/gerardoJI/P1_Commodities_price) en GitHub.")
 
     #Figura 4:
     fig_4=f.grafica_barras_lineas_2ejes(df,['indice_oro', 'indice_plata','indice_petroleo','indice_gas_natural'],['alimentos_bebidas_es','vivienda_es','educacion_es','transporte_es','indice_general_es'],'date','Unidades',[0,350],'Unidades',[50, 150],"Índice de precio de commodities vs IPC España")
