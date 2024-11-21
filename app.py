@@ -305,7 +305,7 @@ def show_about():
 st.sidebar.markdown("---")  # Línea separadora
 st.sidebar.markdown("## Datos del autor")
 st.sidebar.markdown("**Autor:** Gerardo Jiménez Islas")
-st.sidebar.markdown("📌 [LinkedIn](www.linkedin.com/in/gerardo-jiménez-islas-9487b1227)")
+st.sidebar.markdown("📌 [LinkedIn](www.linkedin.com/in/gerardo-jimenez-islas)")
 st.sidebar.markdown("📎 [GitHub](https://github.com/gerardoJI)")
 st.sidebar.markdown("📭 Correo: [gerardoji.0918@gmail.com](mailto:gerardoji.0918@gmail.com)")
 
