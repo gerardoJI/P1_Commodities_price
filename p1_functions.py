@@ -1,6 +1,3 @@
-#-----------------IMPORTACIÓN DE LIBERÍAS---------------------------------------------------------------
-import pandas as pd
-
 #-----------------RECOPILACIÓN DE PRECIOS DE COMMODITIES Y CREACIÓN DE DATAFRAME--------------------------
 
 #Using yfinance to get commodities price data and create a Dataframe
@@ -43,7 +40,173 @@ def comm_price_df(): #commodities price funcition
     
     return df 
 
+#-----------------------INTERPOLACIÓN DE DATOS FALTANTES ------------------------------------------------------------
+import pandas as pd
+
+def completar_columnas_interpolacion(df):
+    """
+    Rellena las fechas faltantes en la columna 'date' y 
+    realiza la interpolación de los valores faltantes en las demás columnas.
+    
+    Parámetros:
+    df (DataFrame): El dataframe con una columna 'date'
+    
+    Retorna:
+    DataFrame: El dataframe con las fechas completadas y los valores interpolados.
+    """
+    # Asegúrate de que la columna 'date' sea de tipo datetime
+    df['date'] = pd.to_datetime(df['date'])
+    
+    # Crear un rango de fechas completo (mensual) desde la fecha mínima hasta la máxima
+    fechas_completas = pd.date_range(start=df['date'].min(), end=df['date'].max(), freq='MS')
+    
+    # Reindexar el dataframe con el rango completo de fechas
+    df_completo = df.set_index('date').reindex(fechas_completas).reset_index()
+    
+    # Renombrar la columna 'index' a 'date'
+    df_completo = df_completo.rename(columns={'index': 'date'})
+    
+    # Interpolar los valores faltantes en las otras columnas
+    df_completo = df_completo.interpolate(method='linear')
+    
+    return df_completo
+
+
+#-----------------RECOPILACIÓN DE DATOS DE SUICIDIO CREACIÓN DE DATAFRAME-------------------------------------------
+
+def data_sui_es(): #Función para hacer web scraping en wikipedia y obtener datos de tabla en la wiki
+    from selenium import webdriver
+    from selenium.webdriver.common.by import By
+    import pandas as pd
+    # Inicializa una instancia del controlador de Google Chrome
+    driver = webdriver.Chrome()
+    driver.get('https://es.wikipedia.org/wiki/Suicidio_en_Espa%C3%B1a')
+
+    #Busca y obtiene el primer elemento en la página que tiene la clase wikitable
+    table = driver.find_element(By.CLASS_NAME, 'wikitable')
+    data = []# Inicializar una lista vacía para almacenar los datos
+    
+    rows = table.find_elements(By.TAG_NAME, 'tr') #Encontrar todas las filas de la tabla <tr> y guardarlas en rows
+    
+    # Iterar sobre las filas y extraer las celdas para separar títulos de columna de datos de columnas:
+    for row in rows:
+        # Encuentra todas las celdas de encabezado dentro de la fila y almacena los datos en header_cells
+        header_cells = row.find_elements(By.TAG_NAME, 'th')
+        # Encuentra todas las los valores dentro de la fila y almacena los datos en data_cells
+        data_cells = row.find_elements(By.TAG_NAME, 'td')
+        #---> Hasta aquí, todos los datos son de tipo selenium
+
+        #<tr> es una fila completa
+        #<th> es el título de una columna
+        #<td> es una celda
+
+        # Extraer y procesar los datos:
+        if header_cells: #Si hay celdad de encabezado, extraer y limpiar espacios del texto en la celda, y guardarla en headers
+            headers = [cell.text.strip() for cell in header_cells]
+        else:
+            # Para los datos de celda, generar lista con los valores de la fila, y gardar dentro de la lista data
+            row_data = [cell.text.strip() for cell in data_cells]
+            data.append(row_data)
+    
+    # Cierra navegador
+    driver.quit()
+
+    # Crea data frame con la lista data, y la lista headers para títulos de columna
+    df_sui_es = pd.DataFrame(data, columns=headers)
+    return df_sui_es
+
+def data_sui_mx():
+    from selenium import webdriver
+    from selenium.webdriver.common.by import By
+    import pandas as pd
+    import time
+
+    # Configurar headers para simular navegador real
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Connection': 'keep-alive',
+        'DNT': '1'
+    }
+
+    # Configurar el navegador
+    options = webdriver.ChromeOptions()
+    #options.add_argument('--headless')
+
+    # Agregar los headers
+    for key, value in headers.items():
+        options.add_argument(f'--header="{key}:{value}"')
+
+    # Configuraciones adicionales para parecer más humano
+    options.add_argument('--disable-blink-features=AutomationControlled')
+    options.add_argument('--disable-infobars')
+    options.add_experimental_option('excludeSwitches', ['enable-automation'])
+    options.add_experimental_option('useAutomationExtension', False)
+
+    driver = webdriver.Chrome(options=options)
+
+    try:
+        # Abrir la página
+        driver.get('https://datosmacro.expansion.com/demografia/mortalidad/causas-muerte/suicidio/mexico')
+        time.sleep(3)
+        
+        # Aceptar cookies si aparece el botón
+        try:
+            boton_cookies = driver.find_element(By.ID, 'ue-accept-notice-button')
+            boton_cookies.click()
+        except:
+            print("No hay botón de cookies")
+        
+        # Encontrar la tabla
+        tabla = driver.find_element(By.CLASS_NAME, 'table')
+        
+        # Obtener datos
+        filas = tabla.find_elements(By.TAG_NAME, 'tr')
+        datos = []
+        
+        # Primera fila para encabezados
+        encabezados = [celda.text for celda in filas[0].find_elements(By.TAG_NAME, 'th')]
+        
+        # Resto de filas para datos
+        for fila in filas[1:]:
+            celdas = fila.find_elements(By.TAG_NAME, 'td')
+            fila_datos = [celda.text for celda in celdas]
+            if fila_datos:
+                datos.append(fila_datos)
+        
+        # Crear DataFrame
+        df = pd.DataFrame(datos, columns=encabezados)
+
+    except Exception as e:
+        print(f"Ocurrió un error: {e}")
+
+    finally:
+        driver.quit()
+    return df
+
 #-----------------EDICIÓN DE DATOS: ESTANDARIZACIÓN Y LIMPIEZA------------------------------------------------------
+
+#Función para eliminar columnas no necesarias en un dataframe
+def eliminar_columnas(df, columnas_a_borrar):
+    import pandas as pd
+    """
+    Elimina las columnas indicadas de un dataframe.
+
+    Argumentos:
+    df : pandas.DataFrame
+        El dataframe del cual se eliminarán las columnas.
+    columnas_a_borrar : list
+        Lista de nombres de las columnas a eliminar.
+
+    Retorna:
+    pandas.DataFrame
+        El dataframe modificado sin las columnas eliminadas.
+    """
+    # Elimina las columnas especificadas en 'columnas_a_borrar'
+    df_modificado = df.drop(columns=columnas_a_borrar, errors='ignore')
+    return df_modificado
 
 # Función para corregir mayúsculas y espacios en nombres de columnas
 def renombrar_columnas(df):
@@ -66,21 +229,57 @@ def renombrar_columnas_icp(df_incp):
     df_incp=df_incp.rename(columns=nombres)
     return df_incp
 
-# Crear datos de ejemplo con fechas en diferentes formatos
-fechas_ejemplo = pd.DataFrame({
-    'fecha': [
-        '2023-01-15',          # formato ISO
-        '15/01/2023',          # formato europeo
-        '01-15-23',            # formato americano abreviado
-        '15-ene-2023',         # formato con mes en texto
-        '2023.01.15',          # formato con puntos
-        '15 enero 2023',       # formato texto español
-        '2023/01/15 08:30:00', # formato con hora
-        '15-Jan-2023',         # formato inglés
-        'Jan 15, 2023',        # formato americano texto
-        '20230115'             # formato compacto
-    ]
-})
+#Función para cambiar nombre en df_sui_es
+def renombrar_columnas_sui_es(df):
+    nombres_inciales=df.columns
+    nombres_finales=["date","sui_h_es","sui_m_es","sui_es"]
+    nombres={inicial:final for inicial,final in zip(nombres_inciales,nombres_finales)}
+    df=df.rename(columns=nombres)
+    return df
+
+#Función para cambiar nombre en df_sui_mx
+def renombrar_columnas_sui_mx(df):
+    nombres_inciales=df.columns
+    nombres_finales=["date","sui_m_mx","sui_h_mx","sui_mx"]
+    nombres={inicial:final for inicial,final in zip(nombres_inciales,nombres_finales)}
+    df=df.rename(columns=nombres)
+    return df
+
+#Función para convertir datos de columnas object a float
+#Función para convertir datos de columnas object a float
+def convertir_columnas_a_float(df, columnas):
+    import pandas as pd
+    # Iterar sobre la lista de columnas que se desean convertir
+    for col in columnas:
+        # Verificar que la columna existe en el DataFrame
+        if col in columnas:
+            # Intentar convertir los valores de la columna a float
+            df[col] = pd.to_numeric(df[col], errors='coerce')  # 'coerce' convierte a NaN los valores no numéricos
+            # Redondear los valores a 2 decimales
+            df[col] = df[col].round(2)
+        else:
+            print(f"La columna '{col}' no existe en el DataFrame.")
+    
+    # Regresar el DataFrame modificado
+    return df
+
+def eliminar_puntos(df, columnas):
+    import pandas as pd
+    """
+    Elimina los puntos (".") dentro de los valores de las columnas especificadas del DataFrame.
+    
+    Args:
+    df (pd.DataFrame): El DataFrame que contiene las columnas a modificar.
+    columnas (list): Lista de nombres de columnas a las que se les eliminarán los puntos.
+
+    Returns:
+    pd.DataFrame: El DataFrame modificado.
+    """
+    for columna in columnas:
+        if columna in df.columns:
+            # Aplica la eliminación de los puntos en cada valor de la columna
+            df[columna] = df[columna].astype(str).str.replace('.', '', regex=False)
+    return df
 
 #Función de limpieza de fecha para homogenizar formato
 def limpiar_fecha(fecha):
@@ -175,22 +374,6 @@ def limpiar_dataframe(df):
     print(df.isna().sum())  # Mostrar la cantidad de valores nulos por columna
     print("\n")
     
-    # Preguntar al usuario si desea rellenar los valores nulos
-    respuesta = input("¿Deseas rellenar los valores nulos? (sí/no): ").strip().lower()
-    
-    if respuesta == 'sí' or respuesta == 'si':
-        # Rellenar valores numéricos con la media de la columna
-        for col in df.select_dtypes(include=['float64', 'int64']).columns:
-            df[col] = df[col].fillna(df[col].mean())  # Asignación explícita
-            
-        # Rellenar valores de texto con 'Desconocido'
-        for col in df.select_dtypes(include=['object']).columns:
-            df[col] = df[col].fillna('Desconocido')  # Asignación explícita
-        
-        print("\nLos valores nulos han sido rellenados.")
-    else:
-        print("\nNo se han rellenado los valores nulos.")
-    
     # Eliminar filas con valores nulos
     df_limpio = df.dropna(axis=0, how='any')  # Elimina filas con al menos un NaN
     
@@ -242,8 +425,6 @@ def limpiar_csv(df):
     return df
 
 
-
-
 #--------------CONSTRUCCIÓN DE COLUMNAS DE ÍNDICES DE PRECIO DE COMMODITIES EN DATAFRAME--------------------------
 
 #Genera las columnas en el dataframe de los índices de precios por commodity
@@ -251,6 +432,37 @@ def indices_precios_comm(df):
     for material in df.columns[1:]: #Iterar en los nombres de las columnas, a partir de la segunda.
         df[f"indice_{material}"]=(df[f"{material}"]/df[f"{material}"].iloc[201])*100 #se toma como base junio 2020, considerando años base de ICP e INCP
     return df
+
+
+#-------------GENERACIÓN DE DATOS PARA CONVERTIR DATOS ANUALES A MENSUALES ---------------------------------------------------
+
+#Esta función considera el total anual de datos, y lo reparte en partes iguales a los 12 meses del año.
+def convertir_a_mensual(df):
+    # Lista para almacenar las filas que se van a generar
+    rows = []
+    
+    # Recorrer las filas del DataFrame original
+    for index, row in df.iterrows():
+        # Obtener el valor de la columna 'date' (asumimos que es de tipo datetime)
+        year = row['date'].year
+        
+        # Para cada fila, repartir los valores entre los 12 meses
+        for month in range(1, 13):  # de enero (1) a diciembre (12)
+            # Crear una nueva fila con la fecha correspondiente (año y mes)
+            new_row = row.copy()  # Copiar los valores de la fila original
+            new_row['date'] = pd.Timestamp(f'{year}-{month:02d}-01')  # Actualizar la fecha al primer día del mes
+            # Repartir los valores de cada columna (excepto 'date') entre los 12 meses
+            for col in row.index:
+                if col != 'date':  # No modificar la columna 'date'
+                    new_row[col] = row[col] / 12
+            # Añadir la nueva fila a la lista de filas
+            rows.append(new_row)
+    
+    # Crear un nuevo DataFrame a partir de las filas generadas
+    df_mensual = pd.DataFrame(rows)
+    
+    return df_mensual
+
 
 
 #-------------DEFINICIÓN DE LÍMITES PARA LAS FECHAS DEL ANÁLISIS ---------------------------------------------------
@@ -277,16 +489,108 @@ def fechas_limite(df,df_incp,df_ipc):
 
 #--------------------UNIÓN DE DATAFRAMES------------------------------------------------------------------------------
 
-#Función para intersectar (how="inner") 2 dataframes, a partir de los datos de la columna date
-def unir_dataframes(df1,df2): 
+#Función para unir (how="inner") 2 dataframes, a partir de los datos de la columna date
+def unir_dataframes(df1,df2,col_name,union): 
     # Reporte de cantidad de datos antes de la unión
     print(f"Cantidad de filas en el DataFrame 'df1' antes de la unión: {len(df1)}")
     print(f"Cantidad de filas en el DataFrame 'df2' antes de la unión: {len(df2)}")
     
     # Realizamos la unión
-    df_final = pd.merge(df1, df2, on="date",how="inner")
+    df_final = pd.merge(df1, df2, on=col_name,how=union)
     
     # Reporte de cantidad de datos después de la unión
     print(f"Cantidad de filas en el DataFrame resultante después de la unión: {len(df_final)} \n")
     
     return df_final
+
+#--------------------------CONSTRUCCIÓN DE GRÁFICAS-----------------------------------------------------------------
+
+#Construcción de gráfica de líneas en plotly
+def graficar_comportamiento_lineas(df, y, x,etiquetas,titulo):
+    """
+    Genera un gráfico de líneas para observar el comportamiento de varias columnas respecto al tiempo.
+
+    Parámetros:
+    - df: DataFrame que contiene los datos.
+    - y: lista de nombres de las columnas que se desean graficar.
+    - x: nombre de la columna que contiene la variable temporal.
+    - titulo: Título del gráfico
+    """
+    import pandas as pd
+    import plotly.express as px
+    # Verificar que la lista de columnas no esté vacía
+    if not y:
+        raise ValueError("Debe proporcionar al menos una columna para graficar.")
+    
+    # Crear el gráfico de líneas
+    #Los argumentos de l función son: (dataframe,[lista con los valores para eje y], valores de eje x, {"x":"etiqueta para x","values":"etiqueta en y"} )
+    fig = px.line(df, x=x, y=y,
+                  title=titulo,
+                  labels=etiquetas,
+                  markers=False,
+                  template="plotly_dark",  # Puedes cambiar el tema
+                  )
+    
+    # Mostrar el gráfico
+    fig.show()
+
+
+
+#Construcción de gráfica de barras y líneas (2 ejes) en plotly
+def grafica_barras_lineas_2ejes(df,columnas_barras,columnas_lineas,x_colum,y1_label,y1_range,y2_label,y2_range,titulo):
+    
+    """
+    Genera un gráfico de barras y líneas para observar su comportamiento en conjunto respecto al tiempo.
+
+    Parámetros:
+    - df: DataFrame que contiene los datos.
+    - columnas_barras: lista de nombres de las columnas que se desean graficar como barras.
+    - columnas_lineas: lista de nombres de las columnas que se desean graficar como líneas.
+    - x_colum: nombre de la columna que contiene la variable temporal.
+    - y1_label: Etiqueta para el eje y1
+    - y1_range: lista con límite inferior y superior del eje y1
+    - y2_label: Etiqueta para el eje y2
+    - y2_range: lista con límite inferior y superior del eje y2
+    - titulo: Título del gráfico
+    """
+    import pandas as pd
+    import plotly.graph_objects as go
+    import plotly.express as px
+
+    # Crear la figura
+    fig = go.Figure()
+
+    # Graficar las barras para las columnas seleccionadas (unidad 1)
+    for i, col in enumerate(columnas_barras):
+        fig.add_trace(go.Bar(x=df[x_colum], y=df[col], name=col, marker_color=px.colors.qualitative.Set3[i]))
+
+    # Graficar las líneas para las columnas seleccionadas (unidad 2)
+    for col in columnas_lineas:
+        fig.add_trace(go.Scatter(x=df[x_colum], y=df[col], mode='lines', name=col, line=dict(width=2), yaxis='y2'))
+
+    # Actualizar la disposición de los ejes
+    fig.update_layout(
+        title=titulo,
+        xaxis_title="Fecha",
+        yaxis_title="Unidad 1",  # Título para el eje Y de las barras
+        yaxis=dict(
+            title=y1_label,  # Eje Y principal
+            side='left',  # Eje Y en el lado izquierdo
+            range=y1_range, # Establecer el rango del eje Y primario (por ejemplo, de 100 a 200)
+            showgrid=True
+        ),
+        yaxis2=dict(
+            title=y2_label,  # Título para el eje Y de las líneas
+            overlaying='y',  # Superpone este eje sobre el principal
+            side='right',  # Eje Y secundario en el lado derecho
+            showgrid=False,  # No mostrar la cuadrícula para el eje Y secundario
+            range=y2_range,  # Establecer el rango del eje Y secundario (por ejemplo, de 100 a 200)
+            position=0.95  # Ajuste la posición del eje secundario si es necesario
+        ),
+        template="plotly_dark",  # Puedes cambiar el tema
+        barmode='group',  # Agrupar las barras
+        legend_title="Unidades"
+    )
+
+    # Mostrar el gráfico
+    fig.show()
