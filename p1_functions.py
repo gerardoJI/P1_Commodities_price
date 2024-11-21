@@ -28,7 +28,7 @@ def comm_price_df(): #commodities price funcition
         # Obtener datos históricos anuales (frecuencia "1y" para anual)
         historial = ticker.history(start=inicio, end=fin, interval="1mo")
         
-        # Solo necesitamos el precio de cierre para cada año
+        # Se recupera el precio de cierre para cada año
         datos[activo] = historial[['Close']] #con close se toman los valores del precio de cierre
 
     # Crear un DataFrame consolidado
@@ -41,7 +41,6 @@ def comm_price_df(): #commodities price funcition
     return df 
 
 #-----------------------INTERPOLACIÓN DE DATOS FALTANTES ------------------------------------------------------------
-import pandas as pd
 
 def completar_columnas_interpolacion(df):
     """
@@ -54,6 +53,7 @@ def completar_columnas_interpolacion(df):
     Retorna:
     DataFrame: El dataframe con las fechas completadas y los valores interpolados.
     """
+    import pandas as pd
     # Asegúrate de que la columna 'date' sea de tipo datetime
     df['date'] = pd.to_datetime(df['date'])
     
@@ -359,6 +359,7 @@ def limpiar_fecha(fecha):
 
 #Función para aplicar 'limpiar_fecha' a la columna 'date' de un DataFrame"""
 def estandarizar_fechas(df):
+    import pandas as pd
     df['date'] = df['date'].apply(limpiar_fecha) #Aplica la función limpiar fecha y lo guarda en df.
     df['date'] = pd.to_datetime(df['date'], errors='coerce')
     return df
@@ -390,9 +391,6 @@ def limpiar_dataframe(df):
     return df_limpio
 
 #Limpieza de archivos -csv
-import pandas as pd
-import numpy as np
-
 def limpiar_csv(df):
     """
     Limpia el DataFrame eliminando filas con valores N/E o NaN, 
@@ -400,6 +398,8 @@ def limpiar_csv(df):
     Retorna:
     - df: DataFrame limpio.
     """
+    import pandas as pd
+    import numpy as np
     #Guarda en una varibale la cantidad incial total de datos
     antes=len(df)
     # Reemplazar 'N/E' por NaN para facilitar la limpieza
@@ -438,6 +438,7 @@ def indices_precios_comm(df):
 
 #Esta función considera el total anual de datos, y lo reparte en partes iguales a los 12 meses del año.
 def convertir_a_mensual(df):
+    import pandas as pd
     # Lista para almacenar las filas que se van a generar
     rows = []
     
@@ -491,6 +492,7 @@ def fechas_limite(df,df_incp,df_ipc):
 
 #Función para unir (how="inner") 2 dataframes, a partir de los datos de la columna date
 def unir_dataframes(df1,df2,col_name,union): 
+    import pandas as pd
     # Reporte de cantidad de datos antes de la unión
     print(f"Cantidad de filas en el DataFrame 'df1' antes de la unión: {len(df1)}")
     print(f"Cantidad de filas en el DataFrame 'df2' antes de la unión: {len(df2)}")
@@ -501,6 +503,12 @@ def unir_dataframes(df1,df2,col_name,union):
     # Reporte de cantidad de datos después de la unión
     print(f"Cantidad de filas en el DataFrame resultante después de la unión: {len(df_final)} \n")
     
+    return df_final
+
+#---------------------LLAMADO A CSV DE DATA FRAME FINAL---------------------------------------------------------------
+def llama_datos():
+    import pandas as pd
+    df_final=pd.read_csv("df_final.csv")
     return df_final
 
 #--------------------------CONSTRUCCIÓN DE GRÁFICAS-----------------------------------------------------------------
@@ -532,7 +540,7 @@ def graficar_comportamiento_lineas(df, y, x,etiquetas,titulo):
                   )
     
     # Mostrar el gráfico
-    fig.show()
+    return fig
 
 
 
@@ -593,4 +601,4 @@ def grafica_barras_lineas_2ejes(df,columnas_barras,columnas_lineas,x_colum,y1_la
     )
 
     # Mostrar el gráfico
-    fig.show()
+    return fig
