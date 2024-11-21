@@ -11,7 +11,7 @@ El objetivo principal, fue aplicar técnicas de web scraping y uso de APIs para 
 ### ¿El precio de los alimentos sube cuando el precio del oro aumenta? 💰💰💰💰
 ### ¿Si los precios suben, aumentan los suicidios? 💸💀
 
-Estas son algunas de las hipóstesis con las que se desarrolló la investigación. 
+Estas son algunas de las hipótesis con las que se desarrolló la investigación. 
 
 ![](c1.jpg)
 
