@@ -5,7 +5,8 @@ Se utiliza streamlit.
 """
 
 import streamlit as st
-import p1_functions as f
+import general_functions as f
+import graficos as g
 
 # Configuración de la página
 st.set_page_config(page_title="Commodities y precios al consumidor", layout="wide")
@@ -237,17 +238,17 @@ def show_graphics():
     df = f.llama_datos() #llama los datos del archivo .csv del dataframe final
 
     #Figura 1:
-    fig_1=f.graficar_comportamiento_lineas(df, ['oro', 'plata', 'petroleo', 'gas_natural'], 'date',{"date": "Tiempo", 'value': 'Valor USD'},'Variación del precio de commodities en USD')
+    fig_1=g.graficar_comportamiento_lineas(df, ['oro', 'plata', 'petroleo', 'gas_natural'], 'date',{"date": "Tiempo", 'value': 'Valor USD'},'Variación del precio de commodities en USD')
     st.plotly_chart(fig_1,use_container_width=True)
     st.write("Considerando que las unidades del eje ordenado se encuentran en USD, se observa como la línea del oro tiene protagonismo, al ser el commoditie de mayor precio. En este gráfico se pueden observar fácilmente los valores máximos y mínimos del precio por commodity. Al día de hoy, el elemento que más ha aumentado su valor desde el año 2002 es el oro, con una variación positiva de más de 900%")
 
     #Figura 2:
-    fig_2=f.graficar_comportamiento_lineas(df, ['indice_oro', 'indice_plata', 'indice_petroleo', 'indice_gas_natural'], 'date',{"date": 'Tiempo', 'value': 'Unidades'},"Variación del ínidice del precio de commodities")
+    fig_2=g.graficar_comportamiento_lineas(df, ['indice_oro', 'indice_plata', 'indice_petroleo', 'indice_gas_natural'], 'date',{"date": 'Tiempo', 'value': 'Unidades'},"Variación del ínidice del precio de commodities")
     st.plotly_chart(fig_2,use_container_width=True)
     st.write("Sin embargo, la comparación de los índices de variación del precio de commodities con base al 2020, permite ver con detalle cuál de ellos ha sufrido cambios más abruptos en su valor respecto al tiempo. El gas natural presenta una gráfica con varios picos, en contraste con el oro, que presenta un aumento más suavizado.")
 
     #Figura 3:
-    fig_3=f.graficar_comportamiento_lineas(df,['alimentos_bebidas_es','vivienda_es','educacion_es','transporte_es','indice_general_es','alimentos_bebidas_mx','vivienda_mx','educacion_mx','transporte_mx','indice_general_mx'], 'date',{"date": 'Tiempo', 'value': 'Unidades'},"IPC vs INPC")
+    fig_3=g.graficar_comportamiento_lineas(df,['alimentos_bebidas_es','vivienda_es','educacion_es','transporte_es','indice_general_es','alimentos_bebidas_mx','vivienda_mx','educacion_mx','transporte_mx','indice_general_mx'], 'date',{"date": 'Tiempo', 'value': 'Unidades'},"IPC vs INPC")
     st.plotly_chart(fig_3,use_container_width=True)
     st.write("Ahora, respecto al aumento de precios entre los años 2002 y 2004 en México y España, la pendiente del INPC de México es mayor que la del IPC de España, lo que indica un mayor crecimiento general de los precios al consumidor en el país latinoamericano. En ambos casos las pendientes son positivas, probablemente reflejo de la inflación. Llama la atención el similar comportamiento del aumento del precio en alimentos y bebidas para ambos países, a partir del 2020.")
 
@@ -255,12 +256,12 @@ def show_graphics():
     st.markdown("💡--> Visita el [repositorio](https://github.com/gerardoJI/P1_Commodities_price) en GitHub.")
 
     #Figura 4:
-    fig_4=f.grafica_barras_lineas_2ejes(df,['indice_oro', 'indice_plata','indice_petroleo','indice_gas_natural'],['alimentos_bebidas_es','vivienda_es','educacion_es','transporte_es','indice_general_es'],'date','Unidades',[0,350],'Unidades',[50, 150],"Índice de precio de commodities vs IPC España")
+    fig_4=g.grafica_barras_lineas_2ejes(df,['indice_oro', 'indice_plata','indice_petroleo','indice_gas_natural'],['alimentos_bebidas_es','vivienda_es','educacion_es','transporte_es','indice_general_es'],'date','Unidades',[0,350],'Unidades',[50, 150],"Índice de precio de commodities vs IPC España")
     st.plotly_chart(fig_4,use_container_width=True)
     st.write("Cuando se compara el índice de variación del oro y el IPC (indice_general_es), se observa cómo ambos presentan un cambio positivo respecto al tiempo. Sin embargo, esto no es evidencia suficiente para indicar que las variables están relacionadas. Por otra parte, cuando se compara el índice de variación del precio del petróleo y el índice de transporte (transporte_es), se aprecia uan coincidencia importante en el comportamiento de los valores, probablemente asociado al estrecho vínculo por la utilización de derivados del petróleo como combustibles.")
 
     #Figura 5:
-    fig_5=f.grafica_barras_lineas_2ejes(df,['indice_oro', 'indice_plata','indice_petroleo','indice_gas_natural'],['alimentos_bebidas_mx','vivienda_mx','educacion_mx','transporte_mx','indice_general_mx'],'date','Unidades',[0,350],'Unidades',[50, 150],"Índice de precio de commodities vs INPC México")
+    fig_5=g.grafica_barras_lineas_2ejes(df,['indice_oro', 'indice_plata','indice_petroleo','indice_gas_natural'],['alimentos_bebidas_mx','vivienda_mx','educacion_mx','transporte_mx','indice_general_mx'],'date','Unidades',[0,350],'Unidades',[50, 150],"Índice de precio de commodities vs INPC México")
     st.plotly_chart(fig_5,use_container_width=True)
     st.write("A diferencia de lo observado en España, la variación del precio del petróleo no pareciera tener relación con el índice del precio del transporte (transporte_mx). Por su parte, el índice del precio de los alimentos (alimentos_mx) mantiene una tendencia positiva a través del tiempo, como el oro. Pero la tendencia similar no representa una justificación para relacionar ambas variables.")
     st.subheader("A modo de conclusión después de este análisis gráfico, se determina la necesidad de aplicar al dataframe un análisis estadístico que permita profundizar en los datos, para poder visualizar algún tipo de correlación que pudieran tener las variables, y que con las gráficas construídas no es posible señalar. De las comparaciones realizadas, se destaca el acompañamiento del precio del oro con los índices de productos en México y España, respecto a la tendencia positiva durante el periodo 2002 a 2024. Por otra parte, en la comparación de variación de precio del petróleo con los precios de transporte en España, se observa una probable relación entre variables que vale la pena indagar.")
@@ -268,12 +269,12 @@ def show_graphics():
     st.header("🚩🚩🚩¿La variación de los precios está vinculada con los suicidios en México y España? 😧")
 
     #Figura 6:
-    fig_6=f.grafica_barras_lineas_2ejes(df,['indice_oro', 'indice_plata','indice_petroleo','indice_gas_natural'],['sui_es', 'sui_mx'],'date','Unidades',[0,350],'Personas',[250, 700],"Índice de precio de commodities vs cantidad de suicidios en México y España")
+    fig_6=g.grafica_barras_lineas_2ejes(df,['indice_oro', 'indice_plata','indice_petroleo','indice_gas_natural'],['sui_es', 'sui_mx'],'date','Unidades',[0,350],'Personas',[250, 700],"Índice de precio de commodities vs cantidad de suicidios en México y España")
     st.plotly_chart(fig_6,use_container_width=True)
     st.write("Cuando se grafican las combinaciones posibles dentro de la figura, no es posible visualizar alguna relación entre los valores de los índices de precios de los commodities y la cantidad de suicidios en México o España.")
 
     #Figura 7:
-    fig_7=f.grafica_barras_lineas_2ejes(df,['alimentos_bebidas_es','vivienda_es','educacion_es','transporte_es','indice_general_es','alimentos_bebidas_mx','vivienda_mx','educacion_mx','transporte_mx','indice_general_mx'],['sui_es', 'sui_mx'],'date','Unidades',[0,175],'Personas',[250, 700],"IPC / INPC vs cantidad de suicidios en México / España")
+    fig_7=g.grafica_barras_lineas_2ejes(df,['alimentos_bebidas_es','vivienda_es','educacion_es','transporte_es','indice_general_es','alimentos_bebidas_mx','vivienda_mx','educacion_mx','transporte_mx','indice_general_mx'],['sui_es', 'sui_mx'],'date','Unidades',[0,175],'Personas',[250, 700],"IPC / INPC vs cantidad de suicidios en México / España")
     st.plotly_chart(fig_7,use_container_width=True)
     st.write("Para el caso de comparar los IPC e INPC contra la cantidad de suicidios en sus respectivos países, para España no se visualiza relación alguna. En el caso de México, la tendencia es positiva tanto para los suicidios como para los índices de precios al consumidor. Igualmente, se requiere ahondar el análisis de los datos para obtener resultados concluyentes.") 
 
